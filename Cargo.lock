@@ -1672,6 +1672,7 @@ dependencies = [
 name = "rocket_example"
 version = "0.1.0"
 dependencies = [
+ "common",
  "log 0.4.11",
  "mongodb",
  "rocket",

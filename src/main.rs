@@ -5,7 +5,9 @@ extern crate rocket;
 
 use rocket_contrib::serve::StaticFiles;
 
+mod catchers;
 mod db;
+mod auth;
 
 #[get("/world")]
 fn index() -> &'static str {
@@ -26,10 +28,12 @@ fn hello_full(first_name: String, last_name: String, greeting_noun: Option<Strin
 }
 
 fn main() {
+    let client = db::DBClient::init("mongodb://localhost:27107");
     let routes = routes![index, hello, hello_full];
     rocket::ignite()
-        .manage(db::DBClient::init("mongodb://localhost:27107".into()))
+        .manage(client.get_app_database("appdb"))
         .mount("/", routes)
         .mount("/public", StaticFiles::from("/static"))
+        .register(catchers![catchers::not_found])
         .launch();
 }

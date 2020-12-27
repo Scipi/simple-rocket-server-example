@@ -63,19 +63,26 @@ impl Database {
         }
     }
 
-    pub fn insert_user(&self, user: &User) -> Result<User, DBError> {
-        return if let Ok(user_bson) = bson::to_bson(&user) {
-            let users = self.collection("users");
+    pub fn insert<T>(&self, collection: &str, item: &T) -> Result<T, DBError>
+    where
+        T: serde::Serialize + serde::de::DeserializeOwned,
+    {
+        return if let Ok(mut user_bson) = bson::to_bson(&item) {
+            let users = self.collection(collection);
 
-            if let Some(user_bson) = user_bson.as_document() {
+            if let Some(user_bson) = user_bson.as_document_mut() {
                 let result = users.insert_one(user_bson.clone(), None);
 
                 match result {
                     Ok(result) => {
-                        let mut user: User = user.clone();
                         if let bson::Bson::ObjectId(id) = result.inserted_id {
-                            user.id = Some(id);
-                            Ok(user)
+                            user_bson.insert("_id", id);
+                            let item: Result<T, _> =
+                                bson::from_bson::<T>(Bson::Document(user_bson.clone()));
+                            match item {
+                                Ok(item) => Ok(item),
+                                Err(_) => Err(DBError::Unknown),
+                            }
                         } else {
                             Err(DBError::Unknown)
                         }
@@ -90,7 +97,7 @@ impl Database {
                 Err(DBError::Unknown)
             }
         } else {
-            error!(target: "app", "Could not create bson from user {:?}", user);
+            error!(target: "app", "Could not create bson from item");
             Err(DBError::Unknown)
         };
     }

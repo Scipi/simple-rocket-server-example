@@ -1,3 +1,4 @@
+use rocket::catch;
 use rocket_contrib::json;
 use rocket_contrib::json::JsonValue;
 

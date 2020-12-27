@@ -31,16 +31,40 @@ pub fn hash(salt: &str, password: &str) -> String {
 ///
 /// * Arguments
 ///
-/// `len` - Length of salt to generate
+/// `len` - Length of salt
 ///
 /// * Example
 ///
 /// ```
 /// use login_auth;
 ///
-/// let salt = login_auth::generate_salt(256);
+/// let salt = login_auth::generate_salt(16);
 /// ```
 pub fn generate_salt(len: usize) -> String {
+    let mut rng = thread_rng();
+    std::iter::repeat(())
+        .map(|()| rng.sample(Alphanumeric))
+        .map(char::from)
+        .take(len)
+        .collect()
+}
+
+/// Returns a random token of `len` alphanumeric characters
+///
+/// * Arguments
+///
+/// `len` - Length of token
+///
+/// * Example
+///
+/// ```
+/// use login_auth;
+///
+/// let token = login_auth::generate_auth_token(256);
+/// ```
+pub fn generate_auth_token(len: usize) -> String {
+    // We're copying this verbatim from generate_salt because we may want
+    // to change this in the future
     let mut rng = thread_rng();
     std::iter::repeat(())
         .map(|()| rng.sample(Alphanumeric))

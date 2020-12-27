@@ -5,10 +5,10 @@ use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::State;
 
-struct LoginAuth(User);
+pub struct LoginAuth(User);
 
 #[derive(Debug)]
-enum LoginError {
+pub enum LoginError {
     MissingAuth,
     NoUser,
     WrongPassword,
@@ -27,6 +27,12 @@ impl<'a, 'r> FromRequest<'a, 'r> for LoginAuth {
             1 => authorize(auth_header[0], request),
             _ => Outcome::Failure((Status::BadRequest, LoginError::BadHeaderCount)),
         }
+    }
+}
+
+impl LoginAuth {
+    pub fn into_inner(self) -> User {
+        self.0
     }
 }
 

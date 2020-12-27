@@ -13,7 +13,7 @@ pub fn signup_endpoint(
     let user = User::from(data.into_inner());
     match db.get_user(&user.username) {
         Ok(Some(_)) => Err(Status::PreconditionFailed),
-        Ok(None) => match db.insert_user(&user) {
+        Ok(None) => match db.insert("users", &user) {
             Ok(user) => Ok(Json(UserBrief::from(user))),
             Err(_) => Err(Status::InternalServerError),
         },

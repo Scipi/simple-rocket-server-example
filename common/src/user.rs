@@ -1,9 +1,10 @@
 use crate::security;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::cmp::PartialEq;
 use std::convert::From;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<bson::oid::ObjectId>,
@@ -21,7 +22,7 @@ pub struct User {
     pub updated: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UserBrief {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<bson::oid::ObjectId>,
@@ -37,11 +38,11 @@ pub struct UserBrief {
     pub updated: DateTime<Utc>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, PartialEq)]
 pub struct SignupUser {
-    username: String,
-    password: String,
-    email: String,
+    pub username: String,
+    pub password: String,
+    pub email: String,
 }
 
 impl User {

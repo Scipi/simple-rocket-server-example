@@ -9,3 +9,12 @@ pub fn not_found() -> JsonValue {
         "message": "Resource was not found"
     })
 }
+
+#[catch(500)]
+pub fn internal_server_error() -> JsonValue {
+    json!({
+        "status": "error",
+        "status_code": 500,
+        "message": "The server encountered an internal error while processing this request"
+    })
+}

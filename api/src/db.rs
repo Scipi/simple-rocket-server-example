@@ -57,9 +57,41 @@ impl Database {
             }
             Ok(None) => Ok(None),
             Err(e) => {
-                error! {target: "DB", "Could not read from database: {:?}", e}
+                error! {target: "DB", "Could not read from database: {:?}", e};
                 Err(DBError::MongoError(e))
             }
         }
+    }
+
+    pub fn insert_user(&self, user: &User) -> Result<User, DBError> {
+        return if let Ok(user_bson) = bson::to_bson(&user) {
+            let users = self.collection("users");
+
+            if let Some(user_bson) = user_bson.as_document() {
+                let result = users.insert_one(user_bson.clone(), None);
+
+                match result {
+                    Ok(result) => {
+                        let mut user: User = user.clone();
+                        if let bson::Bson::ObjectId(id) = result.inserted_id {
+                            user.id = Some(id);
+                            Ok(user)
+                        } else {
+                            Err(DBError::Unknown)
+                        }
+                    }
+                    Err(e) => {
+                        error!(target: "DB", "Could not insert to database: {:?}", e);
+                        Err(DBError::MongoError(e))
+                    }
+                }
+            } else {
+                error!(target: "app", "Could not convert bson to document {:?}", user_bson);
+                Err(DBError::Unknown)
+            }
+        } else {
+            error!(target: "app", "Could not create bson from user {:?}", user);
+            Err(DBError::Unknown)
+        };
     }
 }

@@ -1,14 +1,38 @@
 use common::user::User;
 use log::{error, info};
-use mongodb::bson::{self, doc, Bson};
+use mongodb::bson::ser::Error as BsonSerdeError;
+use mongodb::bson::{self, de::Error as BsonError, doc, Bson};
 use mongodb::error::Error as MongoError;
 use mongodb::sync::{Client, Database as MongoDatabase};
+use rocket_contrib::json::JsonValue;
+use std::convert::From;
 use std::ops::Deref;
 
 #[derive(Debug)]
 pub enum DBError {
     Unknown,
     MongoError(MongoError),
+    BsonError(BsonError),
+    BsonSerdeError(BsonSerdeError),
+    BsonDocumentError,
+}
+
+impl From<MongoError> for DBError {
+    fn from(e: MongoError) -> Self {
+        Self::MongoError(e)
+    }
+}
+
+impl From<BsonError> for DBError {
+    fn from(e: BsonError) -> Self {
+        Self::BsonError(e)
+    }
+}
+
+impl From<BsonSerdeError> for DBError {
+    fn from(e: BsonSerdeError) -> Self {
+        Self::BsonSerdeError(e)
+    }
 }
 
 pub struct DBClient(Client);
@@ -63,42 +87,49 @@ impl Database {
         }
     }
 
-    pub fn insert<T>(&self, collection: &str, item: &T) -> Result<T, DBError>
+    pub fn insert_one<T>(&self, collection: &str, item: &T) -> Result<T, DBError>
     where
         T: serde::Serialize + serde::de::DeserializeOwned,
     {
-        return if let Ok(mut user_bson) = bson::to_bson(&item) {
-            let users = self.collection(collection);
+        let mut user_bson = bson::to_bson(&item)?;
 
-            if let Some(user_bson) = user_bson.as_document_mut() {
-                let result = users.insert_one(user_bson.clone(), None);
+        let users = self.collection(collection);
 
-                match result {
-                    Ok(result) => {
-                        if let bson::Bson::ObjectId(id) = result.inserted_id {
-                            user_bson.insert("_id", id);
-                            let item: Result<T, _> =
-                                bson::from_bson::<T>(Bson::Document(user_bson.clone()));
-                            match item {
-                                Ok(item) => Ok(item),
-                                Err(_) => Err(DBError::Unknown),
-                            }
-                        } else {
-                            Err(DBError::Unknown)
-                        }
-                    }
-                    Err(e) => {
-                        error!(target: "DB", "Could not insert to database: {:?}", e);
-                        Err(DBError::MongoError(e))
-                    }
-                }
-            } else {
-                error!(target: "app", "Could not convert bson to document {:?}", user_bson);
-                Err(DBError::Unknown)
+        let user_bson = user_bson
+            .as_document_mut()
+            .ok_or(DBError::BsonDocumentError)?;
+
+        let result = users.insert_one(user_bson.clone(), None)?;
+        match result.inserted_id {
+            bson::Bson::ObjectId(id) => {
+                user_bson.insert("_id", id);
+                let item = bson::from_bson::<T>(Bson::Document(user_bson.clone()))?;
+                Ok(item)
             }
-        } else {
-            error!(target: "app", "Could not create bson from item");
-            Err(DBError::Unknown)
-        };
+            _ => Err(DBError::Unknown),
+        }
+    }
+
+    pub fn update_one(
+        &self,
+        collection: &str,
+        query: JsonValue,
+        update: JsonValue,
+    ) -> Result<(), DBError> {
+        let collection = self.collection(collection);
+
+        let _ = collection.update_one(
+            bson::to_bson(&query)?
+                .as_document()
+                .ok_or(DBError::BsonDocumentError)?
+                .clone(),
+            bson::to_bson(&update)?
+                .as_document()
+                .ok_or(DBError::BsonDocumentError)?
+                .clone(),
+            None,
+        )?;
+
+        Ok(())
     }
 }

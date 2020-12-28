@@ -75,8 +75,7 @@ impl Database {
 
         match users.find_one(doc! {"username": username }, None) {
             Ok(Some(user)) => {
-                let u: User =
-                    bson::from_bson(Bson::Document(user)).expect("Error parsing document");
+                let u: User = bson::from_bson(Bson::Document(user))?;
                 Ok(Some(u))
             }
             Ok(None) => Ok(None),
@@ -87,19 +86,42 @@ impl Database {
         }
     }
 
+    pub fn find_one<T>(&self, collection: &str, query: JsonValue) -> Result<Option<T>, DBError>
+    where
+        T: serde::Serialize + serde::de::DeserializeOwned,
+    {
+        let collection = self.collection(collection);
+
+        let item = collection.find_one(
+            bson::to_bson(&query)?
+                .as_document()
+                .ok_or(DBError::BsonDocumentError)?
+                .clone(),
+            None,
+        )?;
+
+        match item {
+            Some(doc) => {
+                let item: T = bson::from_bson(Bson::Document(doc))?;
+                Ok(Some(item))
+            }
+            None => Ok(None),
+        }
+    }
+
     pub fn insert_one<T>(&self, collection: &str, item: &T) -> Result<T, DBError>
     where
         T: serde::Serialize + serde::de::DeserializeOwned,
     {
         let mut user_bson = bson::to_bson(&item)?;
 
-        let users = self.collection(collection);
+        let collection = self.collection(collection);
 
         let user_bson = user_bson
             .as_document_mut()
             .ok_or(DBError::BsonDocumentError)?;
 
-        let result = users.insert_one(user_bson.clone(), None)?;
+        let result = collection.insert_one(user_bson.clone(), None)?;
         match result.inserted_id {
             bson::Bson::ObjectId(id) => {
                 user_bson.insert("_id", id);

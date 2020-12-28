@@ -1,8 +1,8 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
+pub use common;
 use rocket::{catchers, get, routes};
 use rocket_contrib::serve::StaticFiles;
-pub use common;
 
 pub mod auth;
 mod catchers;
@@ -29,7 +29,13 @@ fn hello_full(first_name: String, last_name: String, greeting_noun: Option<Strin
 
 pub fn build_rocket() -> rocket::Rocket {
     let client = db::DBClient::init("mongodb://localhost:27017/");
-    let routes = routes![index, hello, hello_full, endpoints::signup::signup_endpoint,];
+    let routes = routes![
+        index,
+        hello,
+        hello_full,
+        endpoints::signup::signup_endpoint,
+        endpoints::login::login_endpoint
+    ];
     rocket::ignite()
         .manage(client.get_app_database("appdb"))
         .mount("/", routes)

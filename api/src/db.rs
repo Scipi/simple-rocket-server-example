@@ -70,22 +70,6 @@ impl Deref for Database {
 }
 
 impl Database {
-    pub fn get_user(&self, username: &str) -> Result<Option<User>, DBError> {
-        let users = self.collection("users");
-
-        match users.find_one(doc! {"username": username }, None) {
-            Ok(Some(user)) => {
-                let u: User = bson::from_bson(Bson::Document(user))?;
-                Ok(Some(u))
-            }
-            Ok(None) => Ok(None),
-            Err(e) => {
-                error! {target: "DB", "Could not read from database: {:?}", e};
-                Err(DBError::MongoError(e))
-            }
-        }
-    }
-
     pub fn find_one<T>(&self, collection: &str, query: JsonValue) -> Result<Option<T>, DBError>
     where
         T: serde::Serialize + serde::de::DeserializeOwned,

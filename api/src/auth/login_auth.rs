@@ -4,6 +4,7 @@ use common::user::User;
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::State;
+use rocket_contrib::json;
 
 pub struct LoginAuth(User);
 
@@ -63,7 +64,11 @@ fn authorize(auth_header: &str, request: &Request) -> Outcome<LoginAuth, LoginEr
         .expect("No managed database connection");
     // Get user
 
-    let user = db.get_user(username);
+    let query = json! {{
+        "username": username
+    }};
+
+    let user = db.find_one::<User>("users", query);
 
     let user = match user {
         Ok(Some(u)) => u,

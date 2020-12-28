@@ -1,7 +1,6 @@
-use common::user::User;
-use log::{error, info};
+use log::info;
 use mongodb::bson::ser::Error as BsonSerdeError;
-use mongodb::bson::{self, de::Error as BsonError, doc, Bson};
+use mongodb::bson::{self, de::Error as BsonError, Bson};
 use mongodb::error::Error as MongoError;
 use mongodb::sync::{Client, Database as MongoDatabase};
 use rocket_contrib::json::JsonValue;

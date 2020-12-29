@@ -3,8 +3,9 @@ use mongodb::bson::ser::Error as BsonSerdeError;
 use mongodb::bson::{self, de::Error as BsonError, Bson};
 use mongodb::error::Error as MongoError;
 use mongodb::sync::{Client, Database as MongoDatabase};
+use rocket::http::Status;
 use rocket_contrib::json::JsonValue;
-use std::convert::From;
+use std::convert::{From, Into};
 use std::ops::Deref;
 
 #[derive(Debug)]
@@ -31,6 +32,15 @@ impl From<BsonError> for DBError {
 impl From<BsonSerdeError> for DBError {
     fn from(e: BsonSerdeError) -> Self {
         Self::BsonSerdeError(e)
+    }
+}
+
+impl From<DBError> for Status {
+    fn from(e: DBError) -> Status {
+        match e {
+            DBError::MongoError(_) => Status::ServiceUnavailable,
+            _ => Status::InternalServerError,
+        }
     }
 }
 

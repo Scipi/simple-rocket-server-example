@@ -28,8 +28,6 @@ pub struct UserBrief {
     pub id: Option<bson::oid::ObjectId>,
     pub username: String,
     pub email: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub auth_token: Option<String>,
     #[serde(with = "crate::datetime")]
     pub last_login: DateTime<Utc>,
     #[serde(with = "crate::datetime")]
@@ -78,7 +76,6 @@ impl From<User> for UserBrief {
             id: data.id,
             username: data.username,
             email: data.email,
-            auth_token: data.auth_token,
             last_login: data.last_login,
             created: data.created,
             updated: data.updated,

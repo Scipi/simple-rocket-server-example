@@ -21,7 +21,6 @@ fn test_signup() {
         created: Utc::now(),
         updated: Utc::now(),
         last_login: Utc::now(),
-        auth_token: None,
     };
 
     let mut response = client

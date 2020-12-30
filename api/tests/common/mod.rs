@@ -1,4 +1,4 @@
-use api::db::_Database;
+use api::db::Database;
 use rocket::local::Client;
 use std::ops::Deref;
 use std::ops::Drop;
@@ -22,8 +22,8 @@ impl Drop for TestClient {
     fn drop(&mut self) {
         let db = self
             .rocket()
-            .state::<_Database>()
-            .expect("Failed to fetch database for cleanup");
-        db.drop(None).expect("Failed to drop database");
+            .state::<Database>()
+            .expect("Failed to fetch db for cleanup");
+        db.drop(None).expect("Failed to drop db");
     }
 }

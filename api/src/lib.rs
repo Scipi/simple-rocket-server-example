@@ -1,4 +1,4 @@
-#![feature(proc_macro_hygiene, decl_macro, backtrace)]
+#![feature(proc_macro_hygiene, decl_macro, bindings_after_at, backtrace)]
 
 pub use common;
 use rocket::{catchers, get, routes};
@@ -34,7 +34,8 @@ pub fn build_rocket() -> rocket::Rocket {
         hello,
         hello_full,
         endpoints::signup::signup_endpoint,
-        endpoints::login::login_endpoint
+        endpoints::login::login_endpoint,
+        endpoints::user::self_endpoint,
     ];
     rocket::ignite()
         .manage(client.get_app_database("appdb"))

@@ -43,6 +43,7 @@ pub fn build_rocket() -> rocket::Rocket {
         .mount("/public", StaticFiles::from("/static"))
         .register(catchers![
             catchers::not_found,
-            catchers::internal_server_error
+            catchers::internal_server_error,
+            catchers::unauthorized
         ])
 }

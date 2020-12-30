@@ -19,3 +19,12 @@ pub fn internal_server_error() -> JsonValue {
         "message": "The server encountered an internal error while processing this request"
     })
 }
+
+#[catch(401)]
+pub fn unauthorized() -> JsonValue {
+    json!({
+        "status": "error",
+        "status_code": 401,
+        "message": "The request requires user authentication"
+    })
+}

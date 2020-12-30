@@ -1,5 +1,5 @@
 use crate::auth::login_auth::LoginAuth;
-use crate::db::Database;
+use crate::db::{Database, DatabaseAccess};
 use common::security;
 use common::user::UserBrief;
 use rocket::http::{Cookie, Cookies, Status};

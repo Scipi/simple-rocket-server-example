@@ -1,4 +1,4 @@
-use crate::db::Database;
+use crate::db::{Database, DatabaseAccess};
 use common::security::hash;
 use common::user::User;
 use rocket::http::Status;

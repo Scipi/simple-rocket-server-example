@@ -1,4 +1,4 @@
-use crate::db::Database;
+use crate::db::{Database, DatabaseAccess};
 use common::user::{SignupUser, User, UserBrief};
 use rocket::http::Status;
 use rocket::post;

@@ -1,6 +1,6 @@
 use crate::db::{Database, DatabaseAccess};
 use common::user::User;
-use log::error;
+use log::{error, info};
 use rocket::http::{Cookies, Status};
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::State;
@@ -13,20 +13,16 @@ pub struct TokenAuth(User);
 impl<'a, 'r> FromRequest<'a, 'r> for TokenAuth {
     type Error = AuthError;
 
+    // Wrapper around from_request in order to get some kind of logging
     fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
-        let mut cookies = match request.guard::<Cookies>() {
-            Outcome::Success(c) => c,
-            _ => {
-                error!("Failed to collect cookies (no Cookies Guard found)");
-                return Outcome::Failure((Status::InternalServerError, AuthError::Unspecified));
+        match _from_request(request) {
+            o @ Outcome::Success(_) => o,
+            Outcome::Failure((s, e)) => {
+                info!("TokenAuth failed with: {} - {}", s, e);
+                Outcome::Failure((s, e))
             }
-        };
-        let token_cookie = match cookies.get_private("auth_token") {
-            Some(c) => c,
-            None => return Outcome::Failure((Status::Unauthorized, AuthError::MissingToken)),
-        };
-
-        authorize(token_cookie.value(), request)
+            o @ Outcome::Forward(_) => o,
+        }
     }
 }
 
@@ -34,6 +30,22 @@ impl TokenAuth {
     pub fn into_inner(self) -> User {
         self.0
     }
+}
+
+fn _from_request(request: &Request) -> Outcome<TokenAuth, AuthError> {
+    let mut cookies = match request.guard::<Cookies>() {
+        Outcome::Success(c) => c,
+        _ => {
+            error!("Failed to collect cookies (no Cookies Guard found)");
+            return Outcome::Failure((Status::InternalServerError, AuthError::Unspecified));
+        }
+    };
+    let token_cookie = match cookies.get_private("auth_token") {
+        Some(c) => c,
+        None => return Outcome::Failure((Status::Unauthorized, AuthError::MissingToken)),
+    };
+
+    authorize(token_cookie.value(), request)
 }
 
 /// Given a user token, look up the user and authenticate

@@ -1,6 +1,7 @@
 use crate::db::{Database, DatabaseAccess};
 use common::security::hash;
 use common::user::User;
+use log::info;
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome, Request};
 use rocket::State;
@@ -13,12 +14,15 @@ use super::err::AuthError;
 impl<'a, 'r> FromRequest<'a, 'r> for LoginAuth {
     type Error = AuthError;
 
+    // Wrapper around from_request in order to get some kind of logging
     fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
-        let auth_header: Vec<_> = request.headers().get("Authorization").collect();
-        match auth_header.len() {
-            0 => Outcome::Failure((Status::Unauthorized, AuthError::MissingAuth)),
-            1 => authorize(auth_header[0], request),
-            _ => Outcome::Failure((Status::BadRequest, AuthError::BadHeaderCount)),
+        match _from_request(request) {
+            o @ Outcome::Success(_) => o,
+            Outcome::Failure((s, e)) => {
+                info!("LoginAuth failed with: {} - {}", s, e);
+                Outcome::Failure((s, e))
+            }
+            o @ Outcome::Forward(_) => o,
         }
     }
 }
@@ -26,6 +30,15 @@ impl<'a, 'r> FromRequest<'a, 'r> for LoginAuth {
 impl LoginAuth {
     pub fn into_inner(self) -> User {
         self.0
+    }
+}
+
+fn _from_request(request: &Request) -> Outcome<LoginAuth, AuthError> {
+    let auth_header: Vec<_> = request.headers().get("Authorization").collect();
+    match auth_header.len() {
+        0 => Outcome::Failure((Status::Unauthorized, AuthError::MissingAuth)),
+        1 => authorize(auth_header[0], request),
+        _ => Outcome::Failure((Status::BadRequest, AuthError::BadHeaderCount)),
     }
 }
 

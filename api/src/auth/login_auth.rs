@@ -8,25 +8,17 @@ use rocket_contrib::json;
 
 pub struct LoginAuth(User);
 
-#[derive(Debug)]
-pub enum LoginError {
-    MissingAuth,
-    NoUser,
-    WrongPassword,
-    BadHeaderCount,
-    DBError,
-    // Unspecified,
-}
+use super::err::AuthError;
 
 impl<'a, 'r> FromRequest<'a, 'r> for LoginAuth {
-    type Error = LoginError;
+    type Error = AuthError;
 
     fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
         let auth_header: Vec<_> = request.headers().get("Authorization").collect();
         match auth_header.len() {
-            0 => Outcome::Failure((Status::Unauthorized, LoginError::MissingAuth)),
+            0 => Outcome::Failure((Status::Unauthorized, AuthError::MissingAuth)),
             1 => authorize(auth_header[0], request),
-            _ => Outcome::Failure((Status::BadRequest, LoginError::BadHeaderCount)),
+            _ => Outcome::Failure((Status::BadRequest, AuthError::BadHeaderCount)),
         }
     }
 }
@@ -45,23 +37,23 @@ impl LoginAuth {
 ///
 /// * `auth_header` - The value of the HTTP Authorization header in the form of `username:password`
 /// * `request` - The active request to authenticate for
-fn authorize(auth_header: &str, request: &Request) -> Outcome<LoginAuth, LoginError> {
+fn authorize(auth_header: &str, request: &Request) -> Outcome<LoginAuth, AuthError> {
     // Parse username and password from auth header
     let creds: Vec<&str> = auth_header.split(':').collect();
 
     let username = match creds.get(0) {
         Some(u) => *u,
-        None => return Outcome::Failure((Status::Unauthorized, LoginError::MissingAuth)),
+        None => return Outcome::Failure((Status::Unauthorized, AuthError::MissingAuth)),
     };
     let password = match creds.get(1) {
         Some(p) => *p,
-        None => return Outcome::Failure((Status::Unauthorized, LoginError::MissingAuth)),
+        None => return Outcome::Failure((Status::Unauthorized, AuthError::MissingAuth)),
     };
 
-    // Get database
+    // Get db
     let db = request
         .guard::<State<Database>>()
-        .expect("No managed database connection");
+        .expect("No managed db connection");
     // Get user
 
     let query = json! {{
@@ -72,8 +64,12 @@ fn authorize(auth_header: &str, request: &Request) -> Outcome<LoginAuth, LoginEr
 
     let user = match user {
         Ok(Some(u)) => u,
-        Ok(None) => return Outcome::Failure((Status::Unauthorized, LoginError::NoUser)),
-        Err(_) => return Outcome::Failure((Status::ServiceUnavailable, LoginError::DBError)),
+        Ok(None) => {
+            return Outcome::Failure((Status::Unauthorized, AuthError::NoUser(username.into())))
+        }
+        Err(e) => {
+            return Outcome::Failure((Status::ServiceUnavailable, AuthError::DBError { source: e }))
+        }
     };
 
     // Hash password
@@ -83,6 +79,9 @@ fn authorize(auth_header: &str, request: &Request) -> Outcome<LoginAuth, LoginEr
     if encoded_hash == user.password_hash {
         Outcome::Success(LoginAuth(user))
     } else {
-        Outcome::Failure((Status::Unauthorized, LoginError::WrongPassword))
+        Outcome::Failure((
+            Status::Unauthorized,
+            AuthError::WrongPassword(username.into()),
+        ))
     }
 }

@@ -53,7 +53,7 @@ impl Deref for Database {
 }
 
 pub trait DatabaseAccess {
-    fn find_one<T>(&self, collection: &str, query: JsonValue) -> Result<Option<T>, DBError>
+    fn find_one<T>(&self, collection: &str, query: &JsonValue) -> Result<Option<T>, DBError>
     where
         T: serde::Serialize + serde::de::DeserializeOwned;
 
@@ -64,13 +64,13 @@ pub trait DatabaseAccess {
     fn update_one(
         &self,
         collection: &str,
-        query: JsonValue,
-        update: JsonValue,
+        query: &JsonValue,
+        update: &JsonValue,
     ) -> Result<(), DBError>;
 }
 
 impl DatabaseAccess for _Database {
-    fn find_one<T>(&self, collection: &str, query: JsonValue) -> Result<Option<T>, DBError>
+    fn find_one<T>(&self, collection: &str, query: &JsonValue) -> Result<Option<T>, DBError>
     where
         T: serde::Serialize + serde::de::DeserializeOwned,
     {
@@ -125,8 +125,8 @@ impl DatabaseAccess for _Database {
     fn update_one(
         &self,
         collection: &str,
-        query: JsonValue,
-        update: JsonValue,
+        query: &JsonValue,
+        update: &JsonValue,
     ) -> Result<(), DBError> {
         let collection = self.collection(collection);
 
@@ -151,7 +151,7 @@ impl DatabaseAccess for _Database {
 }
 
 impl DatabaseAccess for Database {
-    fn find_one<T>(&self, collection: &str, query: JsonValue) -> Result<Option<T>, DBError>
+    fn find_one<T>(&self, collection: &str, query: &JsonValue) -> Result<Option<T>, DBError>
     where
         T: serde::Serialize + serde::de::DeserializeOwned,
     {
@@ -180,8 +180,8 @@ impl DatabaseAccess for Database {
     fn update_one(
         &self,
         collection: &str,
-        query: JsonValue,
-        update: JsonValue,
+        query: &JsonValue,
+        update: &JsonValue,
     ) -> Result<(), DBError> {
         let result = self.0.update_one(collection, query, update);
 

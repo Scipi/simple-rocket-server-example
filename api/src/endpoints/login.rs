@@ -36,6 +36,6 @@ pub fn login_endpoint(
 
     cookies.add_private(cookie);
 
-    db.update_one("users", query, update)?;
+    db.update_one("users", &query, &update)?;
     Ok(Json(user.into()))
 }

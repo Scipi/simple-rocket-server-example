@@ -36,6 +36,19 @@ pub struct UserBrief {
     pub updated: DateTime<Utc>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateUser {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub username: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateUserPassword {
+    pub password: String,
+}
+
 #[derive(Deserialize, Serialize, PartialEq)]
 pub struct SignupUser {
     pub username: String,

@@ -17,7 +17,7 @@ pub fn signup_endpoint(
         "username": user.username
     }};
 
-    match db.find_one::<User>("users", query) {
+    match db.find_one::<User>("users", &query) {
         Ok(Some(_)) => Err(Status::PreconditionFailed),
         Ok(None) => match db.insert_one("users", &user) {
             Ok(user) => Ok(Json(UserBrief::from(user))),

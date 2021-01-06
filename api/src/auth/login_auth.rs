@@ -73,7 +73,7 @@ fn authorize(auth_header: &str, request: &Request) -> Outcome<LoginAuth, AuthErr
         "username": username
     }};
 
-    let user = db.find_one::<User>("users", query);
+    let user = db.find_one::<User>("users", &query);
 
     let user = match user {
         Ok(Some(u)) => u,

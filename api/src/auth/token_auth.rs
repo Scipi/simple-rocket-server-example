@@ -66,7 +66,7 @@ fn authorize(token: &str, request: &Request) -> Outcome<TokenAuth, AuthError> {
         "auth_token": token
     }};
 
-    let user = db.find_one::<User>("users", query);
+    let user = db.find_one::<User>("users", &query);
 
     let user = match user {
         Ok(Some(u)) => u,

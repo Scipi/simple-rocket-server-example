@@ -1,3 +1,5 @@
+//! This module contains everything needed for database access
+
 mod database;
 pub mod err;
 

@@ -1,3 +1,5 @@
+//! This module contains endpoints relating to user account management
+
 use crate::auth::login_auth::LoginAuth;
 use crate::auth::token_auth::TokenAuth;
 use crate::db::{Database, DatabaseAccess};
@@ -9,6 +11,26 @@ use rocket::{get, patch, State};
 use rocket_contrib::json;
 use rocket_contrib::json::Json;
 
+/// Fetch the logged in account (specified by the auth token)
+///
+/// Example:
+/// `GET /self`
+///
+/// Content-type: application/json
+/// Response code: 200
+/// Response body:
+/// ```json
+/// {
+///   "_id": "ObjectId",
+///   "username": "Foo",
+///   "email": "foo@example.com",
+///   "last_login": "2020-12-31 12:00:00",
+///   "created": "2020-12-31 12:00:00",
+///   "updated": "2020-12-31 12:00:00",
+/// }
+/// ```
+///
+/// *Datetimes given in UTC
 #[get("/self")]
 pub fn self_endpoint(token_auth: TokenAuth) -> Result<Json<UserBrief>, Status> {
     Ok(Json(token_auth.into_inner().into()))

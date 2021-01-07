@@ -12,8 +12,8 @@ use sha3::{Digest, Sha3_512};
 /// # Examples
 ///
 /// ```
-/// use auth::login_auth;
-/// let pw_hash = login_auth::hash("salt", "password");
+/// use common::security;
+/// let pw_hash = security::hash("salt", "password");
 /// ```
 pub fn hash(salt: &str, password: &str) -> String {
     let mut hasher = Sha3_512::new();
@@ -36,9 +36,9 @@ pub fn hash(salt: &str, password: &str) -> String {
 /// * Example
 ///
 /// ```
-/// use login_auth;
+/// use common::security;
 ///
-/// let salt = login_auth::generate_salt(16);
+/// let salt = security::generate_salt(16);
 /// ```
 pub fn generate_salt(len: usize) -> String {
     let mut rng = thread_rng();
@@ -58,9 +58,9 @@ pub fn generate_salt(len: usize) -> String {
 /// * Example
 ///
 /// ```
-/// use login_auth;
+/// use common::security;
 ///
-/// let token = login_auth::generate_auth_token(256);
+/// let token = security::generate_auth_token(256);
 /// ```
 pub fn generate_auth_token(len: usize) -> String {
     // We're copying this verbatim from generate_salt because we may want

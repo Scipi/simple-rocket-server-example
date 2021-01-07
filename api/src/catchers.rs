@@ -1,3 +1,6 @@
+//! This module specifies catchers for returning status code responses
+//! as JSON instead of HTML
+
 use rocket::catch;
 use rocket_contrib::json;
 use rocket_contrib::json::JsonValue;

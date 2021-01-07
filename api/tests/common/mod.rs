@@ -24,6 +24,6 @@ impl Drop for TestClient {
             .rocket()
             .state::<Database>()
             .expect("Failed to fetch db for cleanup");
-        db.drop(None).expect("Failed to drop db");
+        db.to_inner().drop(None).expect("Failed to drop db");
     }
 }

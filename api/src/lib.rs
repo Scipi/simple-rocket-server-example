@@ -38,7 +38,7 @@ pub fn build_rocket() -> rocket::Rocket {
         endpoints::user::self_endpoint,
     ];
     rocket::ignite()
-        .manage(client.get_app_database("appdb"))
+        .manage(client.get_database("appdb"))
         .mount("/", routes)
         .mount("/public", StaticFiles::from("/static"))
         .register(catchers![

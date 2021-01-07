@@ -1,3 +1,5 @@
+//! This module contains error information for database operations
+
 use mongodb::bson::de::Error as BsonDeserializationError;
 use mongodb::bson::ser::Error as BsonSerializationError;
 use mongodb::error::Error as MongoError;

@@ -1,3 +1,5 @@
+//! This module contains the endpoints relating to logins
+
 use crate::auth::login_auth::LoginAuth;
 use crate::db::{Database, DatabaseAccess};
 use common::security;
@@ -8,6 +10,31 @@ use rocket::request::State;
 use rocket_contrib::json;
 use rocket_contrib::json::Json;
 
+/// Log in to the server using Basic Auth. This endpoint generates an
+/// auth token for the user and sets it as a private cookie `auth_token`
+///
+/// Example:
+/// `POST /login`
+///
+/// Body:
+/// ```json
+/// {}
+/// ```
+/// Content-type: application/json
+/// Response code: 200
+/// Response body:
+/// ```json
+/// {
+///   "_id": "ObjectId",
+///   "username": "Foo",
+///   "email": "foo@example.com",
+///   "last_login": "2020-12-31 12:00:00",
+///   "created": "2020-12-31 12:00:00",
+///   "updated": "2020-12-31 12:00:00",
+/// }
+/// ```
+///
+/// *Datetimes given in UTC
 #[post("/login")]
 pub fn login_endpoint(
     db: State<Database>,

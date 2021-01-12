@@ -21,6 +21,8 @@ pub fn build_rocket() -> rocket::Rocket {
         endpoints::signup::signup_endpoint,
         endpoints::login::login_endpoint,
         endpoints::user::self_endpoint,
+        endpoints::user::update_user_endpoint,
+        endpoints::user::update_user_password_endpoint,
     ];
     rocket::ignite()
         .manage(client.get_database("appdb"))

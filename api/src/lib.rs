@@ -1,7 +1,7 @@
 #![feature(proc_macro_hygiene, decl_macro, bindings_after_at, backtrace)]
 
 pub use common;
-use rocket::{catchers, get, routes};
+use rocket::{catchers, routes};
 use rocket_contrib::serve::StaticFiles;
 
 pub mod auth;

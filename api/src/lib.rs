@@ -9,7 +9,6 @@
 
 pub use common;
 use rocket::{catchers, routes};
-use rocket_contrib::serve::StaticFiles;
 
 pub mod auth;
 mod catchers;
@@ -26,7 +25,6 @@ pub fn build_rocket() -> rocket::Rocket {
     rocket::ignite()
         .manage(client.get_database("appdb"))
         .mount("/", routes)
-        .mount("/public", StaticFiles::from("/static"))
         .register(catchers![
             catchers::not_found,
             catchers::internal_server_error,

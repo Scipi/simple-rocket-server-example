@@ -1,3 +1,5 @@
+//! Provides serde serialization for `chrono::DateTime` objects
+
 use chrono::{DateTime, TimeZone, Utc};
 use serde::{self, Deserialize, Deserializer, Serializer};
 

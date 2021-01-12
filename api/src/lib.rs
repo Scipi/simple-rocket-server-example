@@ -1,3 +1,10 @@
+//! # Simple Rocket API Server
+//!
+//! This is a simple example rocket api featuring user account management
+//! and a MongoDB backend. This project is meant to be purely for learning
+//! purposes and serves as an example that is at least a little more complex
+//! than the example projects Rocket comes with.
+
 #![feature(proc_macro_hygiene, decl_macro, bindings_after_at, backtrace)]
 
 pub use common;

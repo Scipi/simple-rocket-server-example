@@ -1,6 +1,39 @@
 //! This module contains wrappers around MongoDB clients and databases
 //! for use throughout the codebase without directly working with
-//! mongodb objects
+//! mongodb objects.
+//!
+//! While Rocket v0.4 provides a mongodb client for use with Rocket
+//! with connection pooling provided by `r2d2`, this client is pretty
+//! heavily out of date and more recent mongodb crates implement connection
+//! pooling internally. So there's no need to use the internal mongodb client
+//! since managing a mongodb connection yourself is incredibly simple.
+//! 
+//! Adding a fully managed mongo client to rocket is as simple as the following:
+//! ```
+//! let client = mongodb::sync::Client::with_uri_str("mongodb://localhost:27017/").unwrap();
+//! rocket::ignite().manage(client.database("appdb")).launch();
+//! ```
+//! 
+//! This connection can then be fetched in request guards with
+//! 
+//! ```ignore
+//! let db = request
+//!     .guard::<State<mongodb::sync::Database>>()
+//!     .expect("No managed db connection");
+//! ```
+//! 
+//! or in endpoints with
+//! 
+//! ```ignore
+//! #[get("/endpoint")]
+//! pub fn endpoint(db: State<mongodb::sync::Database>) -> Status {
+//!     // ...
+//! }
+//! ```
+//! 
+//! This is essentially how the database is hooked up to rocket in this crate
+//! except the mongodb `Client` and `Database` are wrapped by our own
+//! custom types to provide abstration.
 
 use log::{error, info};
 use mongodb::bson::{self, Bson};
